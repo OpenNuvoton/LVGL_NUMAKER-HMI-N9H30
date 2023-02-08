@@ -12,7 +12,7 @@
  * COPYRIGHT (C) 2012, Shanghai Real Thread
  */
 
-#include <drivers/mtd_nand.h>
+#include <rtdevice.h>
 
 #ifdef RT_USING_MTD_NAND
 
@@ -95,11 +95,74 @@ rt_err_t rt_mtd_nand_register_device(const char                *name,
     return rt_device_register(dev, name, RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_STANDALONE);
 }
 
+rt_uint32_t rt_mtd_nand_read_id(struct rt_mtd_nand_device *device)
+{
+    RT_ASSERT(device->ops->read_id);
+    return device->ops->read_id(device);
+}
+
+rt_err_t rt_mtd_nand_read(
+    struct rt_mtd_nand_device *device,
+    rt_off_t page,
+    rt_uint8_t *data, rt_uint32_t data_len,
+    rt_uint8_t *spare, rt_uint32_t spare_len)
+{
+    RT_ASSERT(device->ops->read_page);
+    return device->ops->read_page(device, page, data, data_len, spare, spare_len);
+}
+
+rt_err_t rt_mtd_nand_write(
+    struct rt_mtd_nand_device *device,
+    rt_off_t page,
+    const rt_uint8_t *data, rt_uint32_t data_len,
+    const rt_uint8_t *spare, rt_uint32_t spare_len)
+{
+    RT_ASSERT(device->ops->write_page);
+    return device->ops->write_page(device, page, data, data_len, spare, spare_len);
+}
+
+rt_err_t rt_mtd_nand_move_page(struct rt_mtd_nand_device *device,
+        rt_off_t src_page, rt_off_t dst_page)
+{
+    RT_ASSERT(device->ops->move_page);
+    return device->ops->move_page(device, src_page, dst_page);
+}
+
+rt_err_t rt_mtd_nand_erase_block(struct rt_mtd_nand_device *device, rt_uint32_t block)
+{
+    RT_ASSERT(device->ops->erase_block);
+    return device->ops->erase_block(device, block);
+}
+
+rt_err_t rt_mtd_nand_check_block(struct rt_mtd_nand_device *device, rt_uint32_t block)
+{
+    if (device->ops->check_block)
+    {
+        return device->ops->check_block(device, block);
+    }
+    else
+    {
+        return -RT_ENOSYS;
+    }
+}
+
+rt_err_t rt_mtd_nand_mark_badblock(struct rt_mtd_nand_device *device, rt_uint32_t block)
+{
+    if (device->ops->mark_badblock)
+    {
+        return device->ops->mark_badblock(device, block);
+    }
+    else
+    {
+        return -RT_ENOSYS;
+    }
+}
+
 #if defined(RT_MTD_NAND_DEBUG) && defined(RT_USING_FINSH)
 #include <finsh.h>
 #define __is_print(ch) ((unsigned int)((ch) - ' ') < 127u - ' ')
 
-static void mtd_dump_hex(const rt_uint8_t *ptr, rt_size_t buflen)
+static void mtd_dump_hex(const rt_uint8_t *ptr, int buflen)
 {
     unsigned char *buf = (unsigned char *)ptr;
     int i, j;
@@ -349,12 +412,12 @@ MSH_CMD_EXPORT(mtd_nand, MTD nand device test function);
 #endif /* RT_USING_FINSH */
 
 #ifndef RT_USING_FINSH_ONLY
-    FINSH_FUNCTION_EXPORT_ALIAS(mtd_nandid, nand_id, read ID - nandid(name));
-    FINSH_FUNCTION_EXPORT_ALIAS(mtd_nand_read, nand_read, read page in nand - nand_read(name, block, page));
-    FINSH_FUNCTION_EXPORT_ALIAS(mtd_nand_readoob, nand_readoob, read spare data in nand - nand_readoob(name, block, page));
-    FINSH_FUNCTION_EXPORT_ALIAS(mtd_nand_write, nand_write, write dump data to nand - nand_write(name, block, page));
-    FINSH_FUNCTION_EXPORT_ALIAS(mtd_nand_erase, nand_erase, nand_erase(name, block));
-    FINSH_FUNCTION_EXPORT_ALIAS(mtd_nand_erase_all, nand_erase_all, erase all of nand device - nand_erase_all(name, block));
+FINSH_FUNCTION_EXPORT_ALIAS(mtd_nandid, nand_id, read ID - nandid(name));
+FINSH_FUNCTION_EXPORT_ALIAS(mtd_nand_read, nand_read, read page in nand - nand_read(name, block, page));
+FINSH_FUNCTION_EXPORT_ALIAS(mtd_nand_readoob, nand_readoob, read spare data in nand - nand_readoob(name, block, page));
+FINSH_FUNCTION_EXPORT_ALIAS(mtd_nand_write, nand_write, write dump data to nand - nand_write(name, block, page));
+FINSH_FUNCTION_EXPORT_ALIAS(mtd_nand_erase, nand_erase, nand_erase(name, block));
+FINSH_FUNCTION_EXPORT_ALIAS(mtd_nand_erase_all, nand_erase_all, erase all of nand device - nand_erase_all(name, block));
 #endif /* RT_USING_FINSH_ONLY */
 
 #endif /* defined(RT_MTD_NAND_DEBUG) && defined(RT_USING_FINSH) */

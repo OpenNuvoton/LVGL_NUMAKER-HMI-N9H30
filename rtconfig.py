@@ -5,9 +5,13 @@ CPU      = 'arm926'
 # toolchains options
 CROSS_TOOL 	= 'gcc'
 
-#------- toolchains path -------------------------------------------------------
 if os.getenv('RTT_CC'):
 	CROSS_TOOL = os.getenv('RTT_CC')
+if os.getenv('RTT_ROOT'):
+    RTT_ROOT = os.getenv('RTT_ROOT')
+
+# cross_tool provides the cross compiler
+# EXEC_PATH is the compiler execute path, for example, CodeSourcery, Keil MDK, IAR
 
 if  CROSS_TOOL == 'gcc':
 	PLATFORM = 'gcc'
@@ -19,8 +23,8 @@ elif CROSS_TOOL == 'keil':
 if os.getenv('RTT_EXEC_PATH'):
 	EXEC_PATH = os.getenv('RTT_EXEC_PATH')
 
-BUILD = 'debug'
-#BUILD = 'release'
+#BUILD = 'debug'
+BUILD = ''
 
 CORE = 'arm926ej-s'
 MAP_FILE = 'rtthread_n9h30.map'
@@ -32,17 +36,17 @@ if PLATFORM == 'gcc':
     # toolchains
     PREFIX = 'arm-none-eabi-'
     CC = PREFIX + 'gcc'
-    CXX = PREFIX + 'g++'
     AS = PREFIX + 'gcc'
     AR = PREFIX + 'ar'
+    CXX = PREFIX + 'g++'
     LINK = PREFIX + 'gcc'
     TARGET_EXT = 'elf'
     SIZE = PREFIX + 'size'
     OBJDUMP = PREFIX + 'objdump'
     OBJCPY = PREFIX + 'objcopy'
 
-    DEVICE = ' -mcpu=arm926ej-s'
-    CFLAGS = DEVICE
+    DEVICE = ' -mcpu=arm926ej-s '
+    CFLAGS = DEVICE + ' -DLV_LVGL_H_INCLUDE_SIMPLE=1 '
     AFLAGS = '-c'+ DEVICE + ' -x assembler-with-cpp'
     AFLAGS += ' -Iplatform'
     LFLAGS = DEVICE
@@ -53,10 +57,12 @@ if PLATFORM == 'gcc':
     LPATH = ''
 
     if BUILD == 'debug':
-        CFLAGS += ' -O2 -gdwarf-2'
+        CFLAGS += ' -O0 -gdwarf-2 -g'
         AFLAGS += ' -gdwarf-2'
     else:
         CFLAGS += ' -O2'
+
+    CXXFLAGS = CFLAGS 
 
     POST_ACTION = OBJCPY + ' -O binary $TARGET ' + TARGET_NAME + '\n' 
     POST_ACTION += SIZE + ' $TARGET\n'

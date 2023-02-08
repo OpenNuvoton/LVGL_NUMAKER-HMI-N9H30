@@ -17,12 +17,11 @@
 extern "C" {
 #endif
 
-struct rt_mmcsd_io_cfg
-{
+struct rt_mmcsd_io_cfg {
     rt_uint32_t clock;          /* clock rate */
     rt_uint16_t vdd;
 
-    /* vdd stores the bit number of the selected voltage range from below. */
+/* vdd stores the bit number of the selected voltage range from below. */
 
     rt_uint8_t  bus_mode;       /* command output mode */
 
@@ -46,22 +45,21 @@ struct rt_mmcsd_io_cfg
 #define MMCSD_BUS_WIDTH_1       0
 #define MMCSD_BUS_WIDTH_4       2
 #define MMCSD_BUS_WIDTH_8       3
-
+#define MMCSD_DDR_BUS_WIDTH_4   4
+#define MMCSD_DDR_BUS_WIDTH_8   5
 };
 
 struct rt_mmcsd_host;
 struct rt_mmcsd_req;
 
-struct rt_mmcsd_host_ops
-{
+struct rt_mmcsd_host_ops {
     void (*request)(struct rt_mmcsd_host *host, struct rt_mmcsd_req *req);
     void (*set_iocfg)(struct rt_mmcsd_host *host, struct rt_mmcsd_io_cfg *io_cfg);
     rt_int32_t (*get_card_status)(struct rt_mmcsd_host *host);
     void (*enable_sdio_irq)(struct rt_mmcsd_host *host, rt_int32_t en);
 };
 
-struct rt_mmcsd_host
-{
+struct rt_mmcsd_host {
     struct rt_mmcsd_card *card;
     const struct rt_mmcsd_host_ops *ops;
     rt_uint32_t  freq_min;
@@ -93,6 +91,9 @@ struct rt_mmcsd_host
 #define controller_is_spi(host) (host->flags & MMCSD_HOST_IS_SPI)
 #define MMCSD_SUP_SDIO_IRQ  (1 << 4)    /* support signal pending SDIO IRQs */
 #define MMCSD_SUP_HIGHSPEED (1 << 5)    /* support high speed */
+#define MMCSD_SUP_HIGHSPEED_DDR     (1 << 6)    /* support high speed(DDR) */
+#define MMCSD_SUP_HIGHSPEED_HS200   (1 << 7)    /* support high speed HS200 */
+#define MMCSD_SUP_HIGHSPEED_HS400   (1 << 8)    /* support high speed HS400 */
 
     rt_uint32_t max_seg_size;   /* maximum size of one dma segment */
     rt_uint32_t max_dma_segs;   /* maximum number of dma segments in one request */
@@ -111,19 +112,6 @@ struct rt_mmcsd_host
 
     void *private_data;
 };
-
-rt_inline void mmcsd_delay_ms(rt_uint32_t ms)
-{
-    if (ms < 1000 / RT_TICK_PER_SECOND)
-    {
-        rt_thread_delay(1);
-    }
-    else
-    {
-        rt_thread_delay(ms / (1000 / RT_TICK_PER_SECOND));
-    }
-}
-
 #ifdef __cplusplus
 }
 #endif

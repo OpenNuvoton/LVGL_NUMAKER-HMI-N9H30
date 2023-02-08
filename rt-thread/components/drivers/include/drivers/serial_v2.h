@@ -24,6 +24,7 @@
 #define BAUD_RATE_460800                460800
 #define BAUD_RATE_921600                921600
 #define BAUD_RATE_2000000               2000000
+#define BAUD_RATE_2500000               2500000
 #define BAUD_RATE_3000000               3000000
 
 #define DATA_BITS_5                     5
@@ -38,11 +39,11 @@
 #define STOP_BITS_4                     3
 
 #ifdef _WIN32
-    #include <windows.h>
+#include <windows.h>
 #else
-    #define PARITY_NONE                     0
-    #define PARITY_ODD                      1
-    #define PARITY_EVEN                     2
+#define PARITY_NONE                     0
+#define PARITY_ODD                      1
+#define PARITY_EVEN                     2
 #endif
 
 #define BIT_ORDER_LSB                   0
@@ -80,35 +81,40 @@
 #define RT_SERIAL_RX_MINBUFSZ 64
 #define RT_SERIAL_TX_MINBUFSZ 64
 
-#define RT_SERIAL_TX_BLOCKING_BUFFER       1
-#define RT_SERIAL_TX_BLOCKING_NO_BUFFER    0
+#define RT_SERIAL_TX_BLOCKING_BUFFER    1
+#define RT_SERIAL_TX_BLOCKING_NO_BUFFER 0
+
+#define RT_SERIAL_FLOWCONTROL_CTSRTS    1
+#define RT_SERIAL_FLOWCONTROL_NONE      0
 
 /* Default config for serial_configure structure */
-#define RT_SERIAL_CONFIG_DEFAULT              \
-{                                             \
-    BAUD_RATE_115200,    /* 115200 bits/s */  \
-    DATA_BITS_8,         /* 8 databits */     \
-    STOP_BITS_1,         /* 1 stopbit */      \
-    PARITY_NONE,         /* No parity  */     \
-    BIT_ORDER_LSB,       /* LSB first sent */ \
-    NRZ_NORMAL,          /* Normal mode */    \
-    RT_SERIAL_RX_MINBUFSZ, /* rxBuf size */   \
-    RT_SERIAL_TX_MINBUFSZ, /* txBuf size */   \
-    0                                         \
+#define RT_SERIAL_CONFIG_DEFAULT                      \
+{                                                     \
+    BAUD_RATE_115200,           /* 115200 bits/s */   \
+    DATA_BITS_8,                /* 8 databits */      \
+    STOP_BITS_1,                /* 1 stopbit */       \
+    PARITY_NONE,                /* No parity  */      \
+    BIT_ORDER_LSB,              /* LSB first sent */  \
+    NRZ_NORMAL,                 /* Normal mode */     \
+    RT_SERIAL_RX_MINBUFSZ,      /* rxBuf size */      \
+    RT_SERIAL_TX_MINBUFSZ,      /* txBuf size */      \
+    RT_SERIAL_FLOWCONTROL_NONE, /* Off flowcontrol */ \
+    0                                                 \
 }
 
 struct serial_configure
 {
     rt_uint32_t baud_rate;
 
-    rt_uint32_t data_bits               : 4;
-    rt_uint32_t stop_bits               : 2;
-    rt_uint32_t parity                  : 2;
-    rt_uint32_t bit_order               : 1;
-    rt_uint32_t invert                  : 1;
-    rt_uint32_t rx_bufsz                : 16;
-    rt_uint32_t tx_bufsz                : 16;
-    rt_uint32_t reserved                : 6;
+    rt_uint32_t data_bits               :4;
+    rt_uint32_t stop_bits               :2;
+    rt_uint32_t parity                  :2;
+    rt_uint32_t bit_order               :1;
+    rt_uint32_t invert                  :1;
+    rt_uint32_t rx_bufsz                :16;
+    rt_uint32_t tx_bufsz                :16;
+    rt_uint32_t flowcontrol             :1;
+    rt_uint32_t reserved                :5;
 };
 
 /*
@@ -163,23 +169,23 @@ struct rt_uart_ops
                           struct serial_configure       *cfg);
 
     rt_err_t (*control)(struct rt_serial_device         *serial,
-                        int          cmd,
-                        void        *arg);
+                                            int          cmd,
+                                            void        *arg);
 
     int (*putc)(struct rt_serial_device *serial, char c);
     int (*getc)(struct rt_serial_device *serial);
 
     rt_size_t (*transmit)(struct rt_serial_device       *serial,
-                          rt_uint8_t             *buf,
-                          rt_size_t               size,
-                          rt_uint32_t             tx_flag);
+                                 rt_uint8_t             *buf,
+                                 rt_size_t               size,
+                                 rt_uint32_t             tx_flag);
 };
 
 void rt_hw_serial_isr(struct rt_serial_device *serial, int event);
 
 rt_err_t rt_hw_serial_register(struct rt_serial_device      *serial,
                                const  char                  *name,
-                               rt_uint32_t            flag,
-                               void                  *data);
+                                      rt_uint32_t            flag,
+                                      void                  *data);
 
 #endif

@@ -12,12 +12,15 @@
 #include <stdio.h>
 
 #include <rtthread.h>
-#include <dfs_posix.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/statfs.h>
+#include <sys/errno.h>
 
 #include "sys/mman.h"
 
 void *mmap(void *addr, size_t length, int prot, int flags,
-           int fd, off_t offset)
+    int fd, off_t offset)
 {
     uint8_t *mem;
 

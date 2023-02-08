@@ -73,8 +73,7 @@ enum
  * pm_module_release(PM_BOARD_ID, PM_SLEEP_MODE_IDLE)
  * pm_module_release_all(PM_BOARD_ID, PM_SLEEP_MODE_IDLE)
  */
-enum pm_module_id
-{
+enum pm_module_id {
     PM_NONE_ID = 0,
     PM_POWER_ID,
     PM_BOARD_ID,
@@ -102,22 +101,22 @@ enum pm_module_id
 #endif /* PM_USING_CUSTOM_CONFIG */
 
 #ifndef RT_PM_DEFAULT_SLEEP_MODE
-    #define RT_PM_DEFAULT_SLEEP_MODE        PM_SLEEP_MODE_NONE
+#define RT_PM_DEFAULT_SLEEP_MODE        PM_SLEEP_MODE_NONE
 #endif
 
 #ifndef RT_PM_DEFAULT_DEEPSLEEP_MODE
-    #define RT_PM_DEFAULT_DEEPSLEEP_MODE    PM_SLEEP_MODE_DEEP
+#define RT_PM_DEFAULT_DEEPSLEEP_MODE    PM_SLEEP_MODE_DEEP
 #endif
 
 #ifndef RT_PM_DEFAULT_RUN_MODE
-    #define RT_PM_DEFAULT_RUN_MODE          PM_RUN_MODE_NORMAL_SPEED
+#define RT_PM_DEFAULT_RUN_MODE          PM_RUN_MODE_NORMAL_SPEED
 #endif
 
 /**
  * device control flag to request or release power
  */
-#define RT_PM_DEVICE_CTRL_REQUEST   0x01
-#define RT_PM_DEVICE_CTRL_RELEASE   0x00
+#define RT_PM_DEVICE_CTRL_RELEASE   (RT_DEVICE_CTRL_BASE(PM) + 0x00)
+#define RT_PM_DEVICE_CTRL_REQUEST   (RT_DEVICE_CTRL_BASE(PM) + 0x01)
 
 struct rt_pm;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2021, RT-Thread Development Team
+ * Copyright (c) 2006-2022, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -51,9 +51,9 @@
 #include <rtthread.h>
 
 #if defined (RT_USING_SMALL_MEM)
-/**
- * memory item on the small mem
- */
+ /**
+  * memory item on the small mem
+  */
 struct rt_small_mem_item
 {
     rt_ubase_t              pool_ptr;         /**< small memory object addr */
@@ -86,9 +86,9 @@ struct rt_small_mem
 #define HEAP_MAGIC 0x1ea0
 
 #ifdef ARCH_CPU_64BIT
-    #define MIN_SIZE 24
+#define MIN_SIZE 24
 #else
-    #define MIN_SIZE 12
+#define MIN_SIZE 12
 #endif /* ARCH_CPU_64BIT */
 
 #define MEM_MASK             0xfffffffe
@@ -133,7 +133,7 @@ static void plug_holes(struct rt_small_mem *m, struct rt_small_mem_item *mem)
     /* plug hole forward */
     nmem = (struct rt_small_mem_item *)&m->heap_ptr[mem->next];
     if (mem != nmem && !MEM_ISUSED(nmem) &&
-            (rt_uint8_t *)nmem != (rt_uint8_t *)m->heap_end)
+        (rt_uint8_t *)nmem != (rt_uint8_t *)m->heap_end)
     {
         /* if mem->next is unused and not end of m->heap_ptr,
          * combine mem and mem->next
@@ -176,8 +176,8 @@ static void plug_holes(struct rt_small_mem *m, struct rt_small_mem_item *mem)
  * @return Return a pointer to the memory object. When the return value is RT_NULL, it means the init failed.
  */
 rt_smem_t rt_smem_init(const char    *name,
-                       void          *begin_addr,
-                       rt_size_t      size)
+                     void          *begin_addr,
+                     rt_size_t      size)
 {
     struct rt_small_mem_item *mem;
     struct rt_small_mem *small_mem;
@@ -190,7 +190,7 @@ rt_smem_t rt_smem_init(const char    *name,
 
     /* alignment addr */
     if ((end_align > (2 * SIZEOF_STRUCT_MEM)) &&
-            ((end_align - 2 * SIZEOF_STRUCT_MEM) >= start_addr))
+        ((end_align - 2 * SIZEOF_STRUCT_MEM) >= start_addr))
     {
         /* calculate the aligned memory size */
         mem_size = end_align - begin_align - 2 * SIZEOF_STRUCT_MEM;
@@ -290,14 +290,22 @@ void *rt_smem_alloc(rt_smem_t m, rt_size_t size)
     RT_ASSERT(rt_object_is_systemobject(&m->parent));
 
     if (size != RT_ALIGN(size, RT_ALIGN_SIZE))
+    {
         RT_DEBUG_LOG(RT_DEBUG_MEM, ("malloc size %d, but align to %d\n",
                                     size, RT_ALIGN(size, RT_ALIGN_SIZE)));
+    }
     else
+    {
         RT_DEBUG_LOG(RT_DEBUG_MEM, ("malloc size %d\n", size));
+    }
 
     small_mem = (struct rt_small_mem *)m;
     /* alignment size */
     size = RT_ALIGN(size, RT_ALIGN_SIZE);
+
+    /* every data block must be at least MIN_SIZE_ALIGNED long */
+    if (size < MIN_SIZE_ALIGNED)
+        size = MIN_SIZE_ALIGNED;
 
     if (size > small_mem->mem_size_aligned)
     {
@@ -306,13 +314,9 @@ void *rt_smem_alloc(rt_smem_t m, rt_size_t size)
         return RT_NULL;
     }
 
-    /* every data block must be at least MIN_SIZE_ALIGNED long */
-    if (size < MIN_SIZE_ALIGNED)
-        size = MIN_SIZE_ALIGNED;
-
     for (ptr = (rt_uint8_t *)small_mem->lfree - small_mem->heap_ptr;
-            ptr <= small_mem->mem_size_aligned - size;
-            ptr = ((struct rt_small_mem_item *)&small_mem->heap_ptr[ptr])->next)
+         ptr <= small_mem->mem_size_aligned - size;
+         ptr = ((struct rt_small_mem_item *)&small_mem->heap_ptr[ptr])->next)
     {
         mem = (struct rt_small_mem_item *)&small_mem->heap_ptr[ptr];
 
@@ -322,7 +326,7 @@ void *rt_smem_alloc(rt_smem_t m, rt_size_t size)
              * mem->next - (ptr + SIZEOF_STRUCT_MEM) gives us the 'user data size' of mem */
 
             if (mem->next - (ptr + SIZEOF_STRUCT_MEM) >=
-                    (size + SIZEOF_STRUCT_MEM + MIN_SIZE_ALIGNED))
+                (size + SIZEOF_STRUCT_MEM + MIN_SIZE_ALIGNED))
             {
                 /* (in addition to the above, we test if another struct rt_small_mem_item (SIZEOF_STRUCT_MEM) containing
                  * at least MIN_SIZE_ALIGNED of data also fits in the 'user data space' of 'mem')
@@ -521,12 +525,6 @@ void rt_smem_free(void *rmem)
 
     /* Get the corresponding struct rt_small_mem_item ... */
     mem = (struct rt_small_mem_item *)((rt_uint8_t *)rmem - SIZEOF_STRUCT_MEM);
-
-    RT_DEBUG_LOG(RT_DEBUG_MEM,
-                 ("release memory 0x%x, size: %d\n",
-                  (rt_ubase_t)rmem,
-                  (rt_ubase_t)(mem->next - ((rt_uint8_t *)mem - small_mem->heap_ptr))));
-
     /* ... which has to be in a used state ... */
     small_mem = MEM_POOL(mem);
     RT_ASSERT(small_mem != RT_NULL);
@@ -536,6 +534,11 @@ void rt_smem_free(void *rmem)
     RT_ASSERT((rt_uint8_t *)rmem >= (rt_uint8_t *)small_mem->heap_ptr &&
               (rt_uint8_t *)rmem < (rt_uint8_t *)small_mem->heap_end);
     RT_ASSERT(MEM_POOL(&small_mem->heap_ptr[mem->next]) == small_mem);
+
+    RT_DEBUG_LOG(RT_DEBUG_MEM,
+                 ("release memory 0x%x, size: %d\n",
+                  (rt_ubase_t)rmem,
+                  (rt_ubase_t)(mem->next - ((rt_uint8_t *)mem - small_mem->heap_ptr))));
 
     /* ... and is now unused. */
     mem->pool_ptr = MEM_FREED();
@@ -563,7 +566,7 @@ RTM_EXPORT(rt_smem_free);
 int memcheck(int argc, char *argv[])
 {
     int position;
-    rt_ubase_t level;
+    rt_base_t level;
     struct rt_small_mem_item *mem;
     struct rt_small_mem *m;
     struct rt_object_information *information;
@@ -576,8 +579,8 @@ int memcheck(int argc, char *argv[])
     /* get mem object */
     information = rt_object_get_information(RT_Object_Class_Memory);
     for (node = information->object_list.next;
-            node != &(information->object_list);
-            node  = node->next)
+         node != &(information->object_list);
+         node  = node->next)
     {
         object = rt_list_entry(node, struct rt_object, list);
         /* find the specified object */
@@ -622,8 +625,8 @@ int memtrace(int argc, char **argv)
     /* get mem object */
     information = rt_object_get_information(RT_Object_Class_Memory);
     for (node = information->object_list.next;
-            node != &(information->object_list);
-            node  = node->next)
+         node != &(information->object_list);
+         node  = node->next)
     {
         object = rt_list_entry(node, struct rt_object, list);
         /* find the specified object */

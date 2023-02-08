@@ -7,6 +7,7 @@
  * Date           Author       Notes
  * 2009-05-27     Yi.qiu       The first version
  * 2018-02-07     Bernard      Change the 3rd parameter of open/fcntl/ioctl to '...'
+ * 2022-01-19     Meco Man     add creat()
  */
 
 #include <dfs_file.h>
@@ -57,6 +58,21 @@ int open(const char *file, int flags, ...)
 RTM_EXPORT(open);
 
 /**
+ * this function is a POSIX compliant version,
+ * which will create a new file or rewrite an existing one
+ *
+ * @param path the path name of file.
+ * @param mode the file permission bits to be used in creating the file (not used, can be 0)
+ *
+ * @return the non-negative integer on successful open, others for failed.
+ */
+int creat(const char *path, mode_t mode)
+{
+    return open(path, O_WRONLY | O_CREAT | O_TRUNC, mode);
+}
+RTM_EXPORT(creat);
+
+/**
  * this function is a POSIX compliant version, which will close the open
  * file descriptor.
  *
@@ -105,9 +121,9 @@ RTM_EXPORT(close);
  * may be reach the end of file, please check errno.
  */
 #ifdef _READ_WRITE_RETURN_TYPE
-    _READ_WRITE_RETURN_TYPE read(int fd, void *buf, size_t len) /* some gcc tool chains will use different data structure */
+_READ_WRITE_RETURN_TYPE read(int fd, void *buf, size_t len) /* some gcc tool chains will use different data structure */
 #else
-    ssize_t read(int fd, void *buf, size_t len)
+ssize_t read(int fd, void *buf, size_t len)
 #endif
 {
     int result;
@@ -149,9 +165,9 @@ RTM_EXPORT(read);
  * @return the actual written data buffer length.
  */
 #ifdef _READ_WRITE_RETURN_TYPE
-    _READ_WRITE_RETURN_TYPE write(int fd, const void *buf, size_t len) /* some gcc tool chains will use different data structure */
+_READ_WRITE_RETURN_TYPE write(int fd, const void *buf, size_t len) /* some gcc tool chains will use different data structure */
 #else
-    ssize_t write(int fd, const void *buf, size_t len)
+ssize_t write(int fd, const void *buf, size_t len)
 #endif
 {
     int result;
@@ -232,15 +248,17 @@ off_t lseek(int fd, off_t offset, int whence)
 
         return -1;
     }
-    result = dfs_file_lseek(d, offset);
-    if (result < 0)
+    if(offset != d->pos)
     {
-        fd_put(d);
-        rt_set_errno(result);
+        result = dfs_file_lseek(d, offset);
+        if (result < 0)
+        {
+            fd_put(d);
+            rt_set_errno(result);
 
-        return -1;
+            return -1;
+        }
     }
-
     /* release the ref-count of fd */
     fd_put(d);
 
@@ -744,7 +762,7 @@ RTM_EXPORT(telldir);
  * @param d the directory stream.
  * @param offset the offset in directory stream.
  */
-void seekdir(DIR *d, off_t offset)
+void seekdir(DIR *d, long offset)
 {
     struct dfs_fd *fd;
 
@@ -890,7 +908,7 @@ int chdir(const char *path)
 RTM_EXPORT(chdir);
 
 #ifdef RT_USING_FINSH
-    FINSH_FUNCTION_EXPORT_ALIAS(chdir, cd, change current working directory);
+FINSH_FUNCTION_EXPORT_ALIAS(chdir, cd, change current working directory);
 #endif
 #endif
 

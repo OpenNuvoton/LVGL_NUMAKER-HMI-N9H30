@@ -13,7 +13,10 @@
 
 #include <stdint.h>
 #include <rtthread.h>
-#include <dfs_posix.h>
+#include <dfs_file.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/statfs.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/ioctl.h>
@@ -60,6 +63,6 @@ int sys_msgget(key_t key, int msgflg);
 int sys_msgsend(int msqid, const void *msgp, size_t msgsz, int msgflg);
 int sys_msgrcv(int msqid, void *msgp, size_t msgsz, long msgtyp, int msgflg);
 
-int sys_log(const char *log, int size);
+int sys_log(const char* log, int size);
 
 #endif

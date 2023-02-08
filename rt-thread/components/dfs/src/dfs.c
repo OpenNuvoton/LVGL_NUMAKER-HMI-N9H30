@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2021, RT-Thread Development Team
+ * Copyright (c) 2006-2022, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -132,7 +132,7 @@ static int fd_alloc(struct dfs_fdtable *fdt, int startfd)
     }
 
     /* allocate a larger FD container */
-    if (idx == fdt->maxfd && fdt->maxfd < DFS_FD_MAX)
+    if (idx == (int)fdt->maxfd && fdt->maxfd < DFS_FD_MAX)
     {
         int cnt, index;
         struct dfs_fd **fds;
@@ -145,7 +145,7 @@ static int fd_alloc(struct dfs_fdtable *fdt, int startfd)
         if (fds == NULL) goto __exit; /* return fdt->maxfd */
 
         /* clean the new allocated fds */
-        for (index = fdt->maxfd; index < cnt; index ++)
+        for (index = (int)fdt->maxfd; index < cnt; index ++)
         {
             fds[index] = NULL;
         }
@@ -186,7 +186,7 @@ int fd_new(void)
     idx = fd_alloc(fdt, 0);
 
     /* can't find an empty fd entry */
-    if (idx == fdt->maxfd)
+    if (idx == (int)fdt->maxfd)
     {
         idx = -(1 + DFS_FD_OFFSET);
         LOG_E("DFS fd new is failed! Could not found an empty fd entry.");
@@ -520,7 +520,6 @@ struct dfs_fdtable *dfs_fdtable_get(void)
 }
 
 #ifdef RT_USING_FINSH
-#include <finsh.h>
 int list_fd(void)
 {
     int index;
@@ -529,7 +528,7 @@ int list_fd(void)
     fd_table = dfs_fdtable_get();
     if (!fd_table) return -1;
 
-    rt_enter_critical();
+    dfs_lock();
 
     rt_kprintf("fd type    ref magic  path\n");
     rt_kprintf("-- ------  --- ----- ------\n");
@@ -548,6 +547,10 @@ int list_fd(void)
             else rt_kprintf("%-8.8s ", "unknown");
             rt_kprintf("%3d ", fd->ref_count);
             rt_kprintf("%04x  ", fd->magic);
+            if (fd->fs && fd->fs->path && rt_strlen(fd->fs->path) > 1)
+            {
+                rt_kprintf("%s", fd->fs->path);
+            }
             if (fd->path)
             {
                 rt_kprintf("%s\n", fd->path);
@@ -558,11 +561,10 @@ int list_fd(void)
             }
         }
     }
-    rt_exit_critical();
+    dfs_unlock();
 
     return 0;
 }
-MSH_CMD_EXPORT(list_fd, list file descriptor);
-#endif
-/*@}*/
+#endif /* RT_USING_FINSH */
 
+/*@}*/

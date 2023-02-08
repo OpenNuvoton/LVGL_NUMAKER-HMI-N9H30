@@ -10,17 +10,17 @@
 #ifndef __FINSH_H__
 #define __FINSH_H__
 
-#include <rtthread.h>
+#include <rtdef.h>
 
-#if defined(_MSC_VER)
-    #pragma section("FSymTab$f",read)
-#endif
+#ifdef _MSC_VER
+#pragma section("FSymTab$f",read)
+#endif /* _MSC_VER */
 
 typedef long (*syscall_func)(void);
 #ifdef FINSH_USING_SYMTAB
 #ifdef __TI_COMPILER_VERSION__
-    #define __TI_FINSH_EXPORT_FUNCTION(f)  PRAGMA(DATA_SECTION(f,"FSymTab"))
-#endif
+#define __TI_FINSH_EXPORT_FUNCTION(f)  PRAGMA(DATA_SECTION(f,"FSymTab"))
+#endif /* __TI_COMPILER_VERSION__ */
 #ifdef FINSH_USING_DESCRIPTION
 #ifdef _MSC_VER
 #define MSH_FUNCTION_EXPORT_CMD(name, cmd, desc)      \
@@ -36,17 +36,21 @@ typedef long (*syscall_func)(void);
 #pragma comment(linker, "/merge:FSymTab=mytext")
 
 #elif defined(__TI_COMPILER_VERSION__)
+#ifdef __TMS320C28XX__
+#define RT_NOBLOCKED __attribute__((noblocked))
+#else
+#define RT_NOBLOCKED
+#endif
 #define MSH_FUNCTION_EXPORT_CMD(name, cmd, desc)      \
                 __TI_FINSH_EXPORT_FUNCTION(__fsym_##cmd);           \
                 const char __fsym_##cmd##_name[] = #cmd;            \
                 const char __fsym_##cmd##_desc[] = #desc;           \
-                const struct finsh_syscall __fsym_##cmd =           \
+                RT_USED RT_NOBLOCKED const struct finsh_syscall __fsym_##cmd =           \
                 {                           \
                     __fsym_##cmd##_name,    \
                     __fsym_##cmd##_desc,    \
                     (syscall_func)&name     \
                 };
-
 #else
 #define MSH_FUNCTION_EXPORT_CMD(name, cmd, desc)                      \
                 const char __fsym_##cmd##_name[] RT_SECTION(".rodata.name") = #cmd;    \

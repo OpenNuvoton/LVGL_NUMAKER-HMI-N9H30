@@ -11,15 +11,6 @@
 #include <sys/types.h>
 #include <rtthread.h>
 #include <rthw.h>
-#define DBG_TAG    "POSIX.delay"
-#define DBG_LVL    DBG_INFO
-#include <rtdbg.h>
-
-RT_WEAK void rt_hw_us_delay(rt_uint32_t us)
-{
-    (void) us;
-    LOG_W("Please consider implementing rt_hw_us_delay() in another file.");
-}
 
 void msleep(unsigned int msecs)
 {
@@ -59,7 +50,7 @@ unsigned int sleep(unsigned int seconds)
     }
     else /* scheduler has not run yet */
     {
-        while (seconds > 0)
+        while(seconds > 0)
         {
             udelay(1000000u);
             seconds --;

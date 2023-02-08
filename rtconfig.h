@@ -49,7 +49,7 @@
 #define RT_USING_CONSOLE
 #define RT_CONSOLEBUF_SIZE 256
 #define RT_CONSOLE_DEVICE_NAME "uart0"
-#define RT_VER_NUM 0x40100
+#define RT_VER_NUM 0x50000
 #define ARCH_ARM
 #define ARCH_ARM_ARM9
 
@@ -59,14 +59,8 @@
 #define RT_USING_USER_MAIN
 #define RT_MAIN_THREAD_STACK_SIZE 2048
 #define RT_MAIN_THREAD_PRIORITY 10
-
-/* C++ features */
-
-
-/* Command shell */
-
-#define RT_USING_FINSH
 #define RT_USING_MSH
+#define RT_USING_FINSH
 #define FINSH_USING_MSH
 #define FINSH_THREAD_NAME "tshell"
 #define FINSH_THREAD_PRIORITY 20
@@ -78,9 +72,6 @@
 #define MSH_USING_BUILT_IN_COMMANDS
 #define FINSH_USING_DESCRIPTION
 #define FINSH_ARG_MAX 10
-
-/* Device virtual file system */
-
 #define RT_USING_DFS
 #define DFS_USING_POSIX
 #define DFS_USING_WORKDIR
@@ -104,6 +95,12 @@
 #define RT_DFS_ELM_REENTRANT
 #define RT_DFS_ELM_MUTEX_TIMEOUT 3000
 #define RT_USING_DFS_DEVFS
+#define RT_USING_FAL
+#define FAL_DEBUG_CONFIG
+#define FAL_DEBUG 1
+#define FAL_PART_HAS_TABLE_CFG
+#define FAL_USING_SFUD_PORT
+#define FAL_USING_NOR_FLASH_DEV_NAME "norflash0"
 
 /* Device Drivers */
 
@@ -121,6 +118,7 @@
 #define RT_USING_PIN
 #define RT_USING_ADC
 #define RT_USING_PWM
+#define RT_USING_MTD_NAND
 #define RT_USING_RTC
 #define RT_USING_ALARM
 #define RT_USING_SPI
@@ -136,6 +134,7 @@
 #define RT_AUDIO_REPLAY_MP_BLOCK_COUNT 2
 #define RT_AUDIO_RECORD_PIPE_SIZE 2048
 #define RT_USING_TOUCH
+#define RT_TOUCH_PIN_IRQ
 #define RT_USING_INPUT_CAPTURE
 #define RT_INPUT_CAPTURE_RB_SIZE 100
 
@@ -160,7 +159,7 @@
 #define RT_VCOM_TX_TIMEOUT 1000
 #define RT_USB_MSTORAGE_DISK_NAME "ramdisk1"
 
-/* POSIX layer and C standard library */
+/* C/C++ and POSIX layer */
 
 #define RT_LIBC_DEFAULT_TIMEZONE 8
 
@@ -176,20 +175,16 @@
 
 /* Socket is in the 'Network' category */
 
-/* Network */
 
-/* Socket abstraction layer */
+/* Network */
 
 #define RT_USING_SAL
 #define SAL_INTERNET_CHECK
 
-/* protocol stack implement */
+/* Docking with protocol stacks */
 
 #define SAL_USING_LWIP
 #define SAL_USING_POSIX
-
-/* Network interface device */
-
 #define RT_USING_NETDEV
 #define NETDEV_USING_IFCONFIG
 #define NETDEV_USING_PING
@@ -197,11 +192,9 @@
 #define NETDEV_USING_AUTO_DEFAULT
 #define NETDEV_IPV4 1
 #define NETDEV_IPV6 0
-
-/* light weight TCP/IP stack */
-
 #define RT_USING_LWIP
-#define RT_USING_LWIP202
+#define RT_USING_LWIP203
+#define RT_USING_LWIP_VER_NUM 0x20003
 #define RT_LWIP_MEM_ALIGNMENT 4
 #define RT_LWIP_IGMP
 #define RT_LWIP_ICMP
@@ -244,12 +237,6 @@
 #define RT_LWIP_STATS
 #define RT_LWIP_USING_PING
 
-/* AT commands */
-
-
-/* VBUS(Virtual Software BUS) */
-
-
 /* Utilities */
 
 #define RT_USING_UTEST
@@ -277,15 +264,23 @@
 
 /* language packages */
 
+/* JSON: JavaScript Object Notation, a lightweight data-interchange format */
+
+
+/* XML: Extensible Markup Language */
+
 
 /* multimedia packages */
 
 /* LVGL: powerful and easy-to-use embedded GUI library */
 
 #define PKG_USING_LVGL
-#define PKG_USING_LVGL_V810
-#define PKG_LVGL_VER_NUM 0x08010
-#define PKG_USING_LV_MUSIC_DEMO
+#define PKG_LVGL_THREAD_PRIO 20
+#define PKG_LVGL_THREAD_STACK_SIZE 4096
+#define PKG_LVGL_DISP_REFR_PERIOD 30
+#define PKG_USING_LVGL_SQUARELINE
+#define PKG_LVGL_USING_V8_3_LATEST_VERSION
+#define PKG_LVGL_VER_NUM 0x0803F
 
 /* u8g2: a monochrome graphic library */
 
@@ -301,9 +296,6 @@
 /* enhanced kernel services */
 
 
-/* POSIX extension functions */
-
-
 /* acceleration: Assembly language or algorithmic acceleration packages */
 
 
@@ -312,30 +304,68 @@
 
 /* Micrium: Micrium software products porting for RT-Thread */
 
-#define PKG_USING_FAL
-#define FAL_DEBUG_CONFIG
-#define FAL_DEBUG 1
-#define FAL_PART_HAS_TABLE_CFG
-#define FAL_USING_SFUD_PORT
-#define FAL_USING_NOR_FLASH_DEV_NAME "norflash0"
-#define PKG_USING_FAL_LATEST_VERSION
-#define PKG_FAL_VER_NUM 0x99999
 #define PKG_USING_RAMDISK
 #define PKG_USING_RAMDISK_LATEST_VERSION
 
 /* peripheral libraries and drivers */
 
+/* sensors drivers */
+
+
+/* touch drivers */
+
+
+/* Kendryte SDK */
+
 
 /* AI packages */
 
 
+/* Signal Processing and Control Algorithm Packages */
+
+
 /* miscellaneous packages */
+
+/* project laboratory */
 
 /* samples: kernel and components samples */
 
 
 /* entertainment: terminal games and other interesting software packages */
 
+
+/* Arduino libraries */
+
+
+/* Projects */
+
+
+/* Sensors */
+
+
+/* Display */
+
+
+/* Timing */
+
+
+/* Data Processing */
+
+
+/* Data Storage */
+
+/* Communication */
+
+
+/* Device Control */
+
+
+/* Other */
+
+/* Signal IO */
+
+
+/* Uncategorized */
 
 /* Hardware Drivers Config */
 
@@ -344,6 +374,9 @@
 #define SOC_SERIES_N9H30
 #define BSP_USING_MMU
 #define BSP_USING_GPIO
+#define BSP_USING_EMAC
+#define BSP_USING_EMAC0
+#define BSP_USING_EMAC1
 #define BSP_USING_RTC
 #define BSP_USING_ADC
 #define BSP_USING_ADC_TOUCH
@@ -366,28 +399,55 @@
 #define BSP_USING_TIMER3
 #define BSP_USING_UART
 #define BSP_USING_UART0
+#define BSP_USING_I2C
+#define BSP_USING_I2C0
+#define BSP_USING_SDH
+#define BSP_USING_SDH0
+#define BSP_USING_SDH1
+#define NU_SDH_HOTPLUG
+#define BSP_USING_CAN
+#define BSP_USING_CAN0
 #define BSP_USING_PWM
 #define BSP_USING_PWM0
+#define BSP_USING_QSPI
+#define BSP_USING_QSPI0
+#define BSP_USING_QSPI1_NONE
+#define BSP_USING_I2S
+#define NU_I2S_DMA_FIFO_SIZE 2048
+#define BSP_USING_WDT
+#define BSP_USING_EBI
 #define BSP_USING_VPOST
 #define LCM_USING_FW070TFT
 #define VPOST_USING_LCD_IDX 3
-#define BSP_LCD_BPP 32
+#define BSP_LCD_BPP 16
 #define BSP_LCD_WIDTH 800
 #define BSP_LCD_HEIGHT 480
+#define BSP_USING_USBD
+#define BSP_USING_USBH
 
 /* On-board Peripheral Drivers */
 
 #define BSP_USING_CONSOLE
+#define BOARD_USING_IP101GR
+#define BOARD_USING_NAU8822
+#define BOARD_USING_STORAGE_SDCARD
+#define BOARD_USING_STORAGE_SPIFLASH
 #define BOARD_USING_BUZZER
+#define BOARD_USING_USB0_DEVICE_HOST
+#define BOARD_USING_USB1_HOST
 
 /* Board extended module drivers */
 
 #define BOARD_USING_LCM
-#define BOARD_USING_LCM_FW070TFT_WVGA
-#define BOARD_USING_ADCTOUCH
+#define BOARD_USING_LCM_FW043TFT_HVGA
+#define BOARD_USING_GT911
 
 /* Nuvoton Packages Config */
 
 #define NU_PKG_USING_UTILS
+#define NU_PKG_USING_NAU8822
+#define NU_PKG_USING_TPC
+#define NU_PKG_USING_TPC_GT911
+#define NU_PKG_TPC_REVERSE_XY
 
 #endif
