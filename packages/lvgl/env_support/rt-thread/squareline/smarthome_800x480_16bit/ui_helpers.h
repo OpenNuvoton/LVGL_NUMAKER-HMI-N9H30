@@ -1,5 +1,5 @@
 // SquareLine LVGL GENERATED FILE
-// EDITOR VERSION: SquareLine Studio 1.2.0
+// EDITOR VERSION: SquareLine Studio 1.2.1
 // LVGL VERSION: 8.3.4
 // PROJECT: Smarthome
 

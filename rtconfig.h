@@ -419,7 +419,7 @@
 #define BSP_USING_VPOST
 #define LCM_USING_FW070TFT
 #define VPOST_USING_LCD_IDX 3
-#define BSP_LCD_BPP 16
+#define BSP_LCD_BPP 32
 #define BSP_LCD_WIDTH 800
 #define BSP_LCD_HEIGHT 480
 #define BSP_USING_USBD
@@ -439,7 +439,7 @@
 /* Board extended module drivers */
 
 #define BOARD_USING_LCM
-#define BOARD_USING_LCM_FW043TFT_HVGA
+#define BOARD_USING_LCM_FW070TFT_WVGA
 #define BOARD_USING_GT911
 
 /* Nuvoton Packages Config */
