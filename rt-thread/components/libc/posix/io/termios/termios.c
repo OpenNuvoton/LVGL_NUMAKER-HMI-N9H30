@@ -10,7 +10,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <dfs_posix.h>
+#include <unistd.h>
 #include <sys/errno.h>
 #include "termios.h"
 
@@ -29,19 +29,19 @@ int tcsetattr(int fd, int act, const struct termios *tio)
     {
     case TCSANOW:
         /* make the change immediately */
-        return (ioctl(fd, TCSETA, (void *)tio));
+        return (ioctl(fd, TCSETA, (void*)tio));
     case TCSADRAIN:
         /*
          * Don't make the change until all currently written data
          * has been transmitted.
          */
-        return (ioctl(fd, TCSETAW, (void *)tio));
+        return (ioctl(fd, TCSETAW, (void*)tio));
     case TCSAFLUSH:
         /* Don't make the change until all currently written data
          * has been transmitted, at which point any received but
          * unread data is also discarded.
          */
-        return (ioctl(fd, TCSETAF, (void *)tio));
+        return (ioctl(fd, TCSETAF, (void*)tio));
     default:
         errno = EINVAL;
         return (-1);
@@ -95,12 +95,12 @@ int tcsendbreak(int fd, int dur)
 
 int tcflush(int fd, int queue)
 {
-    return ioctl(fd, TCFLSH, (void *)queue);
+    return ioctl(fd, TCFLSH, (void*)queue);
 }
 
 int tcflow(int fd, int action)
 {
-    return ioctl(fd, TCXONC, (void *)action);
+    return ioctl(fd, TCXONC, (void*)action);
 }
 
 /**
@@ -111,13 +111,12 @@ int tcdrain(int fd)
     return 0;
 }
 
-#if defined(_GNU_SOURCE) || defined(_BSD_SOURCE)
 void cfmakeraw(struct termios *t)
 {
-    t->c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON);
+    t->c_iflag &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL|IXON);
     t->c_oflag &= ~OPOST;
-    t->c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
-    t->c_cflag &= ~(CSIZE | PARENB);
+    t->c_lflag &= ~(ECHO|ECHONL|ICANON|ISIG|IEXTEN);
+    t->c_cflag &= ~(CSIZE|PARENB);
     t->c_cflag |= CS8;
     t->c_cc[VMIN] = 1;
     t->c_cc[VTIME] = 0;
@@ -127,4 +126,3 @@ int cfsetspeed(struct termios *tio, speed_t speed)
 {
     return cfsetospeed(tio, speed);
 }
-#endif

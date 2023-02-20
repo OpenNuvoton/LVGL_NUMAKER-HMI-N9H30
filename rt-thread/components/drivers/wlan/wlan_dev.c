@@ -15,35 +15,35 @@
 
 #define DBG_TAG "WLAN.dev"
 #ifdef RT_WLAN_DEV_DEBUG
-    #define DBG_LVL DBG_LOG
+#define DBG_LVL DBG_LOG
 #else
-    #define DBG_LVL DBG_INFO
+#define DBG_LVL DBG_INFO
 #endif /* RT_WLAN_DEV_DEBUG */
 #include <rtdbg.h>
 
 #if defined(RT_USING_WIFI) || defined(RT_USING_WLAN)
 
 #ifndef RT_DEVICE
-    #define RT_DEVICE(__device) ((rt_device_t)__device)
+#define RT_DEVICE(__device) ((rt_device_t)__device)
 #endif
 
 #define WLAN_DEV_LOCK(_wlan)      (rt_mutex_take(&(_wlan)->lock, RT_WAITING_FOREVER))
 #define WLAN_DEV_UNLOCK(_wlan)    (rt_mutex_release(&(_wlan)->lock))
 
 #if RT_WLAN_SSID_MAX_LENGTH < 1
-    #error "SSID length is too short"
+#error "SSID length is too short"
 #endif
 
 #if RT_WLAN_BSSID_MAX_LENGTH < 1
-    #error "BSSID length is too short"
+#error "BSSID length is too short"
 #endif
 
 #if RT_WLAN_PASSWORD_MAX_LENGTH < 1
-    #error "password length is too short"
+#error "password length is too short"
 #endif
 
 #if RT_WLAN_DEV_EVENT_NUM < 2
-    #error "dev num Too little"
+#error "dev num Too little"
 #endif
 
 rt_err_t rt_wlan_dev_init(struct rt_wlan_device *device, rt_wlan_mode_t mode)
@@ -117,6 +117,41 @@ rt_err_t rt_wlan_dev_connect(struct rt_wlan_device *device, struct rt_wlan_info 
     sta_info.security = info->security;
 
     result = rt_device_control(RT_DEVICE(device), RT_WLAN_CMD_JOIN, &sta_info);
+    return result;
+}
+
+rt_err_t rt_wlan_dev_fast_connect(struct rt_wlan_device *device, struct rt_wlan_info *info, const char *password, int password_len)
+{
+    rt_err_t result = RT_EOK;
+    struct rt_wlan_buff buff;
+
+    int len = 0;
+
+    if (device == RT_NULL)
+    {
+        return -RT_EIO;
+    }
+    if (info == RT_NULL)
+    {
+        return -RT_ERROR;
+    }
+
+    if ((password_len > RT_WLAN_PASSWORD_MAX_LENGTH) ||
+            (info->ssid.len > RT_WLAN_SSID_MAX_LENGTH))
+    {
+        LOG_E("L:%d password or ssid is too long", __LINE__);
+        return -RT_ERROR;
+    }
+
+    buff.len = rt_device_control(RT_DEVICE(device), RT_WLAN_CMD_GET_FAST_CONNECT_INFO, buff.data);
+    if(buff.len < 0)
+    {
+        LOG_D("L:%d Can't get fast connect info", __LINE__);
+        return buff.len;
+    }
+
+    result = rt_device_control(RT_DEVICE(device), RT_WLAN_CMD_FAST_CONNECT, &buff);
+
     return result;
 }
 
@@ -848,6 +883,35 @@ static rt_err_t _rt_wlan_dev_control(rt_device_t dev, int cmd, void *args)
             err = wlan->ops->wlan_get_mac(wlan, mac);
         break;
     }
+    case RT_WLAN_CMD_GET_FAST_CONNECT_INFO:
+    {
+
+        LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_GET_FAST_INFO, "RT_WLAN_CMD_GET_FAST_INFO");
+        if (wlan->ops->wlan_get_fast_info)
+        {
+            err = wlan->ops->wlan_get_fast_info(args);
+        }
+        else
+        {
+            err = -RT_EEMPTY;
+        }
+        break;
+    }
+    case RT_WLAN_CMD_FAST_CONNECT:
+    {
+        struct rt_wlan_buff *buff = (struct rt_wlan_buff *)args;
+        LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_FAST_CONNECT, "RT_WLAN_CMD_FAST_CONNECT");
+        if (wlan->ops->wlan_get_fast_info)
+        {
+            err = wlan->ops->wlan_fast_connect(buff->data,buff->len);
+        }
+        else
+        {
+            err = -RT_EEMPTY;
+        }
+        break;
+    }
+
     default:
         LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, -1, "UNKUOWN");
         break;
@@ -875,7 +939,7 @@ rt_err_t rt_wlan_dev_register(struct rt_wlan_device *wlan, const char *name, con
     rt_err_t err = RT_EOK;
 
     if ((wlan == RT_NULL) || (name == RT_NULL) || (ops == RT_NULL) ||
-            (flag & RT_WLAN_FLAG_STA_ONLY && flag & RT_WLAN_FLAG_AP_ONLY))
+        (flag & RT_WLAN_FLAG_STA_ONLY && flag & RT_WLAN_FLAG_AP_ONLY))
     {
         LOG_E("F:%s L:%d parameter Wrongful", __FUNCTION__, __LINE__);
         return RT_NULL;

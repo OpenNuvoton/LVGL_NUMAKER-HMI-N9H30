@@ -16,6 +16,7 @@
  * 2018-11-22     Jesven       add all cpu's lock and ipi handler
  * 2021-02-28     Meco Man     add RT_KSERVICE_USING_STDLIB
  * 2021-11-14     Meco Man     add rtlegacy.h for compatibility
+ * 2022-06-04     Meco Man     remove strnlen
  */
 
 #ifndef __RT_THREAD_H__
@@ -27,7 +28,7 @@
 #include <rtservice.h>
 #include <rtm.h>
 #ifdef RT_USING_LEGACY
-    #include <rtlegacy.h>
+#include <rtlegacy.h>
 #endif
 
 #ifdef __cplusplus
@@ -85,6 +86,9 @@ void rt_tick_set(rt_tick_t tick);
 void rt_tick_increase(void);
 rt_tick_t  rt_tick_from_millisecond(rt_int32_t ms);
 rt_tick_t rt_tick_get_millisecond(void);
+#ifdef RT_USING_HOOK
+void rt_tick_sethook(void (*hook)(void));
+#endif
 
 void rt_system_timer_init(void);
 void rt_system_timer_thread_init(void);
@@ -164,8 +168,8 @@ int  rt_thread_kill(rt_thread_t tid, int sig);
 
 #ifdef RT_USING_HOOK
 void rt_thread_suspend_sethook(void (*hook)(rt_thread_t thread));
-void rt_thread_resume_sethook(void (*hook)(rt_thread_t thread));
-void rt_thread_inited_sethook(void (*hook)(rt_thread_t thread));
+void rt_thread_resume_sethook (void (*hook)(rt_thread_t thread));
+void rt_thread_inited_sethook (void (*hook)(rt_thread_t thread));
 #endif
 
 /*
@@ -287,8 +291,8 @@ void rt_free_sethook(void (*hook)(void *ptr));
  * small memory object interface
  */
 rt_smem_t rt_smem_init(const char    *name,
-                       void          *begin_addr,
-                       rt_size_t      size);
+                     void          *begin_addr,
+                     rt_size_t      size);
 rt_err_t rt_smem_detach(rt_smem_t m);
 void *rt_smem_alloc(rt_smem_t m, rt_size_t size);
 void *rt_smem_realloc(rt_smem_t m, void *rmem, rt_size_t newsize);
@@ -348,7 +352,7 @@ rt_sem_t rt_sem_create(const char *name, rt_uint32_t value, rt_uint8_t flag);
 rt_err_t rt_sem_delete(rt_sem_t sem);
 #endif
 
-rt_err_t rt_sem_take(rt_sem_t sem, rt_int32_t time);
+rt_err_t rt_sem_take(rt_sem_t sem, rt_int32_t timeout);
 rt_err_t rt_sem_trytake(rt_sem_t sem);
 rt_err_t rt_sem_release(rt_sem_t sem);
 rt_err_t rt_sem_control(rt_sem_t sem, int cmd, void *arg);
@@ -364,8 +368,11 @@ rt_err_t rt_mutex_detach(rt_mutex_t mutex);
 rt_mutex_t rt_mutex_create(const char *name, rt_uint8_t flag);
 rt_err_t rt_mutex_delete(rt_mutex_t mutex);
 #endif
+void rt_mutex_drop_thread(rt_mutex_t mutex, rt_thread_t thread);
+rt_uint8_t rt_mutex_setprioceiling(rt_mutex_t mutex, rt_uint8_t priority);
+rt_uint8_t rt_mutex_getprioceiling(rt_mutex_t mutex);
 
-rt_err_t rt_mutex_take(rt_mutex_t mutex, rt_int32_t time);
+rt_err_t rt_mutex_take(rt_mutex_t mutex, rt_int32_t timeout);
 rt_err_t rt_mutex_trytake(rt_mutex_t mutex);
 rt_err_t rt_mutex_release(rt_mutex_t mutex);
 rt_err_t rt_mutex_control(rt_mutex_t mutex, int cmd, void *arg);
@@ -503,13 +510,13 @@ rt_err_t
 rt_device_set_tx_complete(rt_device_t dev,
                           rt_err_t (*tx_done)(rt_device_t dev, void *buffer));
 
-rt_err_t  rt_device_init(rt_device_t dev);
-rt_err_t  rt_device_open(rt_device_t dev, rt_uint16_t oflag);
+rt_err_t  rt_device_init (rt_device_t dev);
+rt_err_t  rt_device_open (rt_device_t dev, rt_uint16_t oflag);
 rt_err_t  rt_device_close(rt_device_t dev);
-rt_size_t rt_device_read(rt_device_t dev,
-                         rt_off_t    pos,
-                         void       *buffer,
-                         rt_size_t   size);
+rt_size_t rt_device_read (rt_device_t dev,
+                          rt_off_t    pos,
+                          void       *buffer,
+                          rt_size_t   size);
 rt_size_t rt_device_write(rt_device_t dev,
                           rt_off_t    pos,
                           const void *buffer,
@@ -588,7 +595,8 @@ rt_device_t rt_console_get_device(void);
 rt_err_t rt_get_errno(void);
 void rt_set_errno(rt_err_t no);
 int *_rt_errno(void);
-#if !defined(RT_USING_NEWLIB) && !defined(_WIN32)
+const char *rt_strerror(rt_err_t error);
+#if !defined(RT_USING_NEWLIBC) && !defined(_WIN32)
 #ifndef errno
 #define errno    *_rt_errno()
 #endif
@@ -596,17 +604,15 @@ int *_rt_errno(void);
 
 int __rt_ffs(int value);
 
-#ifndef RT_KSERVICE_USING_STDLIB_MEMSET
+#ifndef RT_KSERVICE_USING_STDLIB_MEMORY
 void *rt_memset(void *src, int c, rt_ubase_t n);
-#endif /* RT_KSERVICE_USING_STDLIB_MEMSET */
-#ifndef RT_KSERVICE_USING_STDLIB_MEMCPY
 void *rt_memcpy(void *dest, const void *src, rt_ubase_t n);
-#endif /* RT_KSERVICE_USING_STDLIB_MEMCPY */
-char *rt_strdup(const char *s);
-
-#ifndef RT_KSERVICE_USING_STDLIB
 void *rt_memmove(void *dest, const void *src, rt_size_t n);
 rt_int32_t rt_memcmp(const void *cs, const void *ct, rt_size_t count);
+#endif /* RT_KSERVICE_USING_STDLIB_MEMORY */
+char *rt_strdup(const char *s);
+rt_size_t rt_strnlen(const char *s, rt_ubase_t maxlen);
+#ifndef RT_KSERVICE_USING_STDLIB
 char *rt_strstr(const char *str1, const char *str2);
 rt_int32_t rt_strcasecmp(const char *a, const char *b);
 char *rt_strcpy(char *dst, const char *src);
@@ -616,14 +622,12 @@ rt_int32_t rt_strcmp(const char *cs, const char *ct);
 rt_size_t rt_strlen(const char *src);
 #else
 #include <string.h>
-#ifdef RT_KSERVICE_USING_STDLIB_MEMSET
+#ifdef RT_KSERVICE_USING_STDLIB_MEMORY
 #define rt_memset(s, c, count)      memset(s, c, count)
-#endif /* RT_KSERVICE_USING_STDLIB_MEMSET */
-#ifdef RT_KSERVICE_USING_STDLIB_MEMCPY
 #define rt_memcpy(dst, src, count)  memcpy(dst, src, count)
-#endif /* RT_KSERVICE_USING_STDLIB_MEMCPY */
 #define rt_memmove(dest, src, n)    memmove(dest, src, n)
 #define rt_memcmp(cs, ct, count)    memcmp(cs, ct, count)
+#endif /* RT_KSERVICE_USING_STDLIB_MEMORY */
 #define rt_strstr(str1, str2)       strstr(str1, str2)
 #define rt_strcasecmp(a, b)         strcasecmp(a, b)
 #define rt_strcpy(dest, src)        strcpy(dest, src)
@@ -632,18 +636,6 @@ rt_size_t rt_strlen(const char *src);
 #define rt_strcmp(cs, ct)           strcmp(cs, ct)
 #define rt_strlen(src)              strlen(src)
 #endif /*RT_KSERVICE_USING_STDLIB*/
-
-#if !defined(RT_KSERVICE_USING_STDLIB) || defined(__ARMCC_VERSION)
-rt_size_t rt_strnlen(const char *s, rt_ubase_t maxlen);
-#else
-#define rt_strnlen(s, maxlen)       strnlen(s, maxlen)
-#endif /* !defined(RT_KSERVICE_USING_STDLIB) || defined(__ARMCC_VERSION) */
-
-#ifdef __ARMCC_VERSION
-/* MDK doesn't have these APIs */
-char *strdup(const char *str);
-rt_size_t strnlen(const char *s, rt_size_t maxlen);
-#endif /* __ARMCC_VERSION */
 
 void rt_show_version(void);
 

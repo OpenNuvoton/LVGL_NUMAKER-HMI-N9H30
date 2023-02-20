@@ -1,18 +1,8 @@
 [
  {
   "path": "/packages/multimedia/LVGL/LVGL", 
-  "ver": "v8.1.0", 
+  "ver": "v8.3.4", 
   "name": "LVGL"
- }, 
- {
-  "path": "/packages/multimedia/LVGL/lv_music_demo", 
-  "ver": "v0.1.1", 
-  "name": "LV_MUSIC_DEMO"
- }, 
- {
-  "path": "/packages/system/fal", 
-  "ver": "latest", 
-  "name": "FAL"
  }, 
  {
   "path": "/packages/system/ramdisk", 

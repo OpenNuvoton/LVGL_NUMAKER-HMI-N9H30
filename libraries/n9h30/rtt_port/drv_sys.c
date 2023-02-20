@@ -74,9 +74,6 @@ void rt_hw_interrupt_init(void)
 {
     int i;
 
-    *((volatile unsigned int *)REG_AIC_ISR)  = 0xFFFFFFFF;   // disable all interrupt channel
-    *((volatile unsigned int *)REG_AIC_ISRH) = 0xFFFFFFFF;   // disable all interrupt channel
-
     /* init interrupt nest, and context in thread sp */
     rt_interrupt_nest               = 0;
     rt_interrupt_from_thread        = 0;
@@ -136,8 +133,38 @@ void rt_hw_interrupt_set_type(int vector, int type)
     sysSetInterruptType((IRQn_Type)vector, (UINT32) type);
 }
 
+static void nu_sys_any_go(void)
+{
+#if defined(__CC_ARM)
+    extern uint32_t Entry_Point;
+    volatile uint32_t *pu32EPAddr = &Entry_Point;
+#elif defined( __GNUC__ )
+    extern uint32_t system_vectors;
+    volatile uint32_t *pu32EPAddr = &system_vectors;
+#endif
+    /*
+        Copy all arm926ejs exception entries function address to 0x0 from Entry_Point.
+    */
+    volatile uint32_t *pu32ExcepAddr = 0x0;
+
+    if (pu32ExcepAddr == pu32EPAddr)
+        return;
+
+    for (int i = 0; i < 0x10; i++)
+    {
+        pu32ExcepAddr[i] = pu32EPAddr[i];
+    }
+}
+
 void rt_low_level_init(void)
 {
+    // Disable all interrupt channels
+    outpw(REG_AIC_ISR, 0xFFFFFFFF);
+    outpw(REG_AIC_ISRH, 0xFFFFFFFF);
+    outpw(REG_AIC_EOSCR, 1);
+
+    nu_sys_any_go();
+
     /* Unlock write-protect */
     SYS_UnlockReg();
 
@@ -146,6 +173,7 @@ void rt_low_level_init(void)
 
     /* Lock write-protect */
     SYS_LockReg();
+
 }
 
 void nu_clock_base_init(void)
@@ -234,6 +262,8 @@ static void _nu_sys_ipclk(E_SYS_IPCLK eIPClkIdx, uint32_t bEnable)
     /* Enter critical section */
     level = rt_hw_interrupt_disable();
 
+    SYS_UnlockReg();
+
     if (bEnable)
     {
         /* Enable IP CLK */
@@ -244,6 +274,8 @@ static void _nu_sys_ipclk(E_SYS_IPCLK eIPClkIdx, uint32_t bEnable)
         /* Disable IP CLK */
         outpw(u32IPCLKRegAddr, inpw(u32IPCLKRegAddr) & ~(1 << u32IPCLKRegBit));
     }
+
+    SYS_LockReg();
 
     /* Leave critical section */
     rt_hw_interrupt_enable(level);

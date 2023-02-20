@@ -126,7 +126,7 @@ int dfs_device_fs_open(struct dfs_fd *file)
 
     /* open root directory */
     if ((file->path[0] == '/') && (file->path[1] == '\0') &&
-            (file->flags & O_DIRECTORY))
+        (file->flags & O_DIRECTORY))
     {
         struct rt_object *object;
         struct rt_list_node *node;
@@ -144,11 +144,15 @@ int dfs_device_fs_open(struct dfs_fd *file)
         {
             count ++;
         }
+        rt_exit_critical();
 
         root_dirent = (struct device_dirent *)rt_malloc(sizeof(struct device_dirent) +
                       count * sizeof(rt_device_t));
         if (root_dirent != RT_NULL)
         {
+            /* lock scheduler */
+            rt_enter_critical();
+
             root_dirent->devices = (rt_device_t *)(root_dirent + 1);
             root_dirent->read_index = 0;
             root_dirent->device_count = count;
@@ -156,12 +160,18 @@ int dfs_device_fs_open(struct dfs_fd *file)
             /* get all device node */
             for (node = information->object_list.next; node != &(information->object_list); node = node->next)
             {
+                /* avoid memory write through */
+                if (count == root_dirent->device_count)
+                {
+                    rt_kprintf("warning: There are newly added devices that are not displayed!");
+                    break;
+                }
                 object = rt_list_entry(node, struct rt_object, list);
                 root_dirent->devices[count] = (rt_device_t)object;
                 count ++;
             }
+            rt_exit_critical();
         }
-        rt_exit_critical();
 
         /* set data */
         file->data = root_dirent;
@@ -272,7 +282,7 @@ int dfs_device_fs_getdents(struct dfs_fd *file, struct dirent *dirp, uint32_t co
         return -EINVAL;
 
     for (index = 0; index < count && index + root_dirent->read_index < root_dirent->device_count;
-            index ++)
+        index ++)
     {
         object = (rt_object_t)root_dirent->devices[root_dirent->read_index + index];
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2021, RT-Thread Development Team
+ * Copyright (c) 2006-2022, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -13,9 +13,9 @@
 
 #define DBG_TAG               "I2C"
 #ifdef RT_I2C_DEBUG
-    #define DBG_LVL               DBG_LOG
+#define DBG_LVL               DBG_LOG
 #else
-    #define DBG_LVL               DBG_INFO
+#define DBG_LVL               DBG_INFO
 #endif
 #include <rtdbg.h>
 
@@ -88,7 +88,7 @@ rt_err_t rt_i2c_control(struct rt_i2c_bus_device *bus,
 {
     rt_err_t ret;
 
-    if (bus->ops->i2c_bus_control)
+    if(bus->ops->i2c_bus_control)
     {
         ret = bus->ops->i2c_bus_control(bus, cmd, arg);
 
@@ -108,7 +108,7 @@ rt_size_t rt_i2c_master_send(struct rt_i2c_bus_device *bus,
                              const rt_uint8_t         *buf,
                              rt_uint32_t               count)
 {
-    rt_err_t ret;
+    rt_size_t ret;
     struct rt_i2c_msg msg;
 
     msg.addr  = addr;
@@ -127,7 +127,7 @@ rt_size_t rt_i2c_master_recv(struct rt_i2c_bus_device *bus,
                              rt_uint8_t               *buf,
                              rt_uint32_t               count)
 {
-    rt_err_t ret;
+    rt_size_t ret;
     struct rt_i2c_msg msg;
     RT_ASSERT(bus != RT_NULL);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2018, RT-Thread Development Team
+ * Copyright (c) 2006-2022, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -122,6 +122,13 @@ secondary_loop:
     b secondary_loop
 
 normal_setup:
+
+    /* enable I cache + branch prediction */
+    mrc p15, 0, r0, c1, c0, 0
+    orr     r0, r0, #(1<<12)
+    orr     r0, r0, #(1<<11)
+    mcr p15, 0, r0, c1, c0, 0
+
     /* setup stack */
     bl      stack_setup
 
@@ -142,10 +149,6 @@ bss_loop:
     mcr p15, 0, r1, c1, c0, 1 //enable smp
 #endif
 
-    /* enable branch prediction */
-    mrc p15, 0, r0, c1, c0, 0
-    orr     r0, r0, #(1<<11)
-    mcr p15, 0, r0, c1, c0, 0
 
     /* initialize the mmu table and enable mmu */
     ldr r0, =platform_mem_desc
@@ -153,21 +156,6 @@ bss_loop:
     ldr r1, [r1]
     bl rt_hw_init_mmu_table
     bl rt_hw_mmu_init
-
-    /* call C++ constructors of global objects                          */
-    ldr     r0, =__ctors_start__
-    ldr     r1, =__ctors_end__
-
-ctor_loop:
-    cmp     r0, r1
-    beq     ctor_end
-    ldr     r2, [r0], #4
-    stmfd   sp!, {r0-r1}
-    mov     lr, pc
-    bx      r2
-    ldmfd   sp!, {r0-r1}
-    b       ctor_loop
-ctor_end:
 
     /* start RT-Thread Kernel */
     ldr     pc, _rtthread_startup
