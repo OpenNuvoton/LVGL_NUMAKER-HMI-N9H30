@@ -49,7 +49,10 @@
 #define LV_FONT_MONTSERRAT_46           1
 #define LV_FONT_MONTSERRAT_48           1
 
-//#define LV_USE_PERF_MONITOR             0
+#define CONFIG_LV_MEM_SIZE              (512*1024)
+#define CONFIG_LV_LAYER_SIMPLE_BUF_SIZE (256*1024)
+
+//#define LV_USE_PERF_MONITOR           1
 //#define CONFIG_LV_LOG_LEVEL LV_LOG_LEVEL_TRACE
 
 #define LV_USE_DEMO_RTT_MUSIC         1
